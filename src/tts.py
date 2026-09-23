@@ -85,7 +85,12 @@ def _piper_synthesize(text: str, lang: str, out_path: Path):
     onnx_path, _json_path = _ensure_piper_voice(lang)
     voice = PiperVoice.load(str(onnx_path))
     with wave.open(str(out_path), "wb") as wav_file:
-        voice.synthesize_wav(text, wav_file)
+        # piper-tts==1.2.0 (versión fijada en requirements.txt) expone el
+        # método synthesize(), no synthesize_wav() (eso es de versiones más
+        # nuevas de la librería). Con la versión equivocada, wav_file nunca
+        # recibe setnchannels/setframerate y wave.close() explota con
+        # "# channels not specified", enmascarando el AttributeError real.
+        voice.synthesize(text, wav_file)
 
 
 def synthesize(text: str, lang: str, out_path: str | Path) -> Path:
