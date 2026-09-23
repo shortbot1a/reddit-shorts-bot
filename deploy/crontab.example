@@ -1,0 +1,9 @@
+# Referencia: esta línea la instala automáticamente deploy/setup_vm.sh
+# cuando detecta que config/.env ya existe. Si alguna vez quieres editarla a
+# mano: `crontab -e` en la VM, y pega/ajusta esta línea (cambia la ruta si
+# tu proyecto no está en $HOME/reddit-shorts-bot).
+#
+# Corre el pipeline cada 8 horas (3 veces al día encajan bien con
+# VIDEOS_PER_DAY_PER_CHANNEL=3, repartiendo la subida en vez de hacerla toda
+# de golpe).
+0 */8 * * * cd $HOME/reddit-shorts-bot && venv/bin/python src/orchestrator.py >> logs/cron.log 2>&1

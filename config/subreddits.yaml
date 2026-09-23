@@ -1,0 +1,52 @@
+# Lista de subreddits fuente y su "categoría" (afecta al tono de la narración
+# y a filtros específicos). Puedes añadir/quitar libremente sin tocar código:
+# el orquestador lee este archivo en cada ejecución.
+#
+# min_score: upvotes mínimos para considerar el post
+# flair_blocklist: flairs a ignorar (memes, imágenes, encuestas, etc.)
+
+subreddits:
+  - name: AmItheAsshole
+    category: dilemma
+    min_score: 3000
+    flair_blocklist: ["META", "Open Forum", "Asshole POO Mode"]
+
+  - name: relationship_advice
+    category: relationship
+    min_score: 1500
+    flair_blocklist: []
+
+  - name: nosleep
+    category: horror
+    min_score: 1000
+    flair_blocklist: ["Series"]     # evitamos series largas multi-parte
+
+  - name: creepypasta
+    category: horror
+    min_score: 500
+    flair_blocklist: []
+
+  - name: tifu
+    category: confession
+    min_score: 3000
+    flair_blocklist: ["Weekly Recap"]
+
+  - name: confession
+    category: confession
+    min_score: 800
+    flair_blocklist: []
+
+  - name: EntitledPeople
+    category: story
+    min_score: 1500
+    flair_blocklist: []
+
+  - name: MaliciousCompliance
+    category: story
+    min_score: 2000
+    flair_blocklist: []
+
+  - name: pettyrevenge
+    category: story
+    min_score: 1500
+    flair_blocklist: []

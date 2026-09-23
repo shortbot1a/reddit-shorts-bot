@@ -1,0 +1,32 @@
+# --- Reddit ---
+praw==7.7.1           # modo 'api' (requiere aprobación de Reddit, ver GUIA_CONFIGURACION.md)
+feedparser==6.0.11     # modo 'rss' (funciona sin aprobación, es el modo por defecto ahora mismo)
+beautifulsoup4==4.12.3 # limpia el HTML que trae cada entrada RSS
+
+# --- Traducción local (offline, gratis para siempre, sin API de pago) ---
+argostranslate==1.9.6
+
+# --- TTS ---
+edge-tts==6.1.19
+piper-tts==1.2.0
+
+# --- Subtítulos (Whisper local, CPU-friendly) ---
+faster-whisper==1.0.3
+
+# --- Vídeo / audio ---
+ffmpeg-python==0.2.0
+pydub==0.25.1
+
+# --- Bancos de vídeo de stock (Pexels / Pixabay) ---
+requests==2.32.3
+
+# --- YouTube ---
+google-api-python-client==2.144.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+
+# --- Utilidades ---
+python-dotenv==1.0.1
+PyYAML==6.0.2
+langdetect==1.0.9
+tenacity==8.5.0

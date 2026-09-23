@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.pyc
+config/.env
+config/client_secret_*.json
+config/token_*.json
+assets/footage/
+assets/voices/
+# state/pipeline.db SÍ se versiona a propósito: en GitHub Actions cada
+# ejecución arranca desde cero, así que el workflow hace commit de este
+# archivo al final de cada run para no repetir historias ni perder la
+# cuenta de subidas diarias. Solo ignoramos los archivos auxiliares de
+# SQLite (WAL/SHM), que son temporales y no hace falta conservar.
+state/*.db-*
+logs/
+output/

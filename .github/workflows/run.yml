@@ -1,0 +1,117 @@
+name: Reddit Shorts Bot
+
+# Se ejecuta sola cada 8 horas (00:00, 08:00, 16:00 UTC) y genera/sube hasta
+# VIDEOS_PER_DAY_PER_CHANNEL vídeos nuevos por canal. También se puede lanzar
+# a mano desde la pestaña "Actions" de GitHub (botón "Run workflow") para
+# probar sin esperar al siguiente horario.
+on:
+  schedule:
+    - cron: '0 */8 * * *'
+  workflow_dispatch: {}
+
+# Evita que dos ejecuciones se pisen (por ejemplo si lanzas una a mano justo
+# cuando toca la programada): la segunda espera a que termine la primera.
+concurrency:
+  group: reddit-shorts-bot
+  cancel-in-progress: false
+
+# Necesario para que el workflow pueda hacer commit del estado al final.
+permissions:
+  contents: write
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar ffmpeg
+        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
+
+      # Guarda entre ejecuciones el modelo de traducción (Argos), las voces
+      # de Piper y los clips de fondo ya descargados, para no re-descargarlos
+      # cada vez (más rápido y menos peticiones a las APIs externas).
+      - name: Cache de modelos y assets descargables
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/share/argos-translate
+            assets/voices
+            assets/footage
+          key: bot-assets-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            bot-assets-
+
+      - name: Instalar dependencias de Python
+        run: pip install -r requirements.txt
+
+      - name: Reconstruir credenciales y configuración desde Secrets
+        env:
+          YT_CLIENT_SECRET_EN: ${{ secrets.YT_CLIENT_SECRET_EN }}
+          YT_CLIENT_SECRET_ES: ${{ secrets.YT_CLIENT_SECRET_ES }}
+          YT_TOKEN_EN: ${{ secrets.YT_TOKEN_EN }}
+          YT_TOKEN_ES: ${{ secrets.YT_TOKEN_ES }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+        run: |
+          mkdir -p config
+          printf '%s' "$YT_CLIENT_SECRET_EN" > config/client_secret_en.json
+          printf '%s' "$YT_CLIENT_SECRET_ES" > config/client_secret_es.json
+          printf '%s' "$YT_TOKEN_EN" > config/token_en.json
+          printf '%s' "$YT_TOKEN_ES" > config/token_es.json
+          # REDDIT_MODE: 'api' si has añadido REDDIT_CLIENT_ID como Secret
+          # (mejor filtrado, necesita que Reddit apruebe tu app), si no 'rss'
+          # (funciona ya mismo, sin aprobación, es el modo por defecto).
+          if [ -n "$REDDIT_CLIENT_ID" ]; then
+            REDDIT_MODE=api
+          else
+            REDDIT_MODE=rss
+          fi
+          cat > config/.env <<EOF
+          REDDIT_MODE=$REDDIT_MODE
+          REDDIT_CLIENT_ID=$REDDIT_CLIENT_ID
+          REDDIT_CLIENT_SECRET=$REDDIT_CLIENT_SECRET
+          REDDIT_USER_AGENT=reddit-shorts-bot/1.0 (github-actions)
+          PEXELS_API_KEY=$PEXELS_API_KEY
+          PIXABAY_API_KEY=$PIXABAY_API_KEY
+          YT_EN_CLIENT_SECRET_FILE=config/client_secret_en.json
+          YT_EN_TOKEN_FILE=config/token_en.json
+          YT_ES_CLIENT_SECRET_FILE=config/client_secret_es.json
+          YT_ES_TOKEN_FILE=config/token_es.json
+          VIDEOS_PER_DAY_PER_CHANNEL=3
+          MIN_UPVOTES=500
+          MIN_WORDS=120
+          MAX_WORDS=850
+          WHISPER_MODEL_SIZE=small
+          LOG_LEVEL=INFO
+          EOF
+
+      - name: Ejecutar el pipeline (generar y subir vídeos)
+        run: python src/orchestrator.py
+
+      - name: Guardar el estado actualizado (historias usadas, cuota diaria)
+        run: |
+          git config user.name "reddit-shorts-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/pipeline.db
+          git diff --staged --quiet || git commit -m "chore: actualizar estado del pipeline [skip ci]"
+          git push
+
+      - name: Subir logs como artefacto (para depurar si algo falla)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ github.run_id }}
+          path: logs/
+          retention-days: 7
+          if-no-files-found: ignore
