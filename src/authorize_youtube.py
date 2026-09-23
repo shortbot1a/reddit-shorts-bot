@@ -28,15 +28,17 @@ import sys
 from pathlib import Path
 
 from google_auth_oauthlib.flow import InstalledAppFlow
-from dotenv import load_dotenv
 import os
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from env_utils import load_env
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload",
           "https://www.googleapis.com/auth/youtube.readonly"]
 
 
 def authorize(lang: str):
-    load_dotenv()
+    load_env()
     client_secret_file = os.environ[f"YT_{lang.upper()}_CLIENT_SECRET_FILE"]
     token_file = os.environ[f"YT_{lang.upper()}_TOKEN_FILE"]
 

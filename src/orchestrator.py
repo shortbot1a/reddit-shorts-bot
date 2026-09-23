@@ -25,7 +25,7 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 
-from dotenv import load_dotenv
+from env_utils import load_env
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -119,7 +119,7 @@ def _produce_and_upload(candidate: reddit_source.Candidate, lang: str, channel: 
 
 
 def run_once():
-    load_dotenv()
+    load_env()
     _setup_logging()
     state_db.init_db()
     footage_bank.refresh_footage_bank()

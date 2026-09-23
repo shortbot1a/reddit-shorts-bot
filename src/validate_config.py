@@ -16,9 +16,9 @@ import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from env_utils import load_env
 
 
 def check(label: str, ok: bool, hint: str = ""):
@@ -28,7 +28,7 @@ def check(label: str, ok: bool, hint: str = ""):
 
 
 def main():
-    load_dotenv()
+    load_env()
     all_ok = True
 
     reddit_mode = os.getenv("REDDIT_MODE", "rss").strip().lower()

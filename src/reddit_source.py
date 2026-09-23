@@ -31,9 +31,8 @@ from dataclasses import dataclass
 
 import yaml
 import requests
-from dotenv import load_dotenv
-
 from state_db import is_post_used
+from env_utils import load_env
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("reddit_source")
@@ -208,7 +207,7 @@ def fetch_candidates_rss(max_results: int = 20) -> list[Candidate]:
 
 def _reddit_client():
     import praw
-    load_dotenv()
+    load_env()
     return praw.Reddit(
         client_id=os.environ["REDDIT_CLIENT_ID"],
         client_secret=os.environ["REDDIT_CLIENT_SECRET"],
